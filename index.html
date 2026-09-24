@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>点呼・打刻システム</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=M+PLUS+Rounded+1c:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+      :root {
+        --bg-color: #060911;
+        --card-bg: rgba(15, 23, 42, 0.88);
+        --neon-green: #00ff88;
+        --neon-green-glow: rgba(0, 255, 136, 0.45);
+        --neon-pink: #ff2a6d;
+        --neon-pink-glow: rgba(255, 42, 109, 0.45);
+        --text-main: #f8fafc;
+        --text-sub: #94a3b8;
+      }
+
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+      body {
+        font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--bg-color);
+        background-image: 
+          radial-gradient(circle at 50% -10%, rgba(0, 255, 136, 0.15), transparent 60%),
+          radial-gradient(circle at 50% 110%, rgba(255, 42, 109, 0.12), transparent 60%);
+        color: var(--text-main);
+        margin: 0; padding: 16px;
+        min-height: 100vh;
+        display: flex; flex-direction: column;
+        justify-content: center; align-items: center;
+        overflow-x: hidden;
+      }
+
+      .app-container {
+        width: 100%; max-width: 390px;
+        animation: containerSlide 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes containerSlide {
+        from { opacity: 0; transform: translateY(20px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      .header { text-align: center; margin-bottom: 22px; }
+      .title {
+        font-size: 0.9em; font-weight: 800; letter-spacing: 3px;
+        color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green-glow);
+        text-transform: uppercase; margin: 0 0 4px 0;
+      }
+      .clock {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 2.4em; font-weight: 700; color: var(--text-main);
+        letter-spacing: 2px; text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      }
+
+      .card {
+        background: var(--card-bg);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 28px; padding: 26px 22px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+        transition: transform 0.3s ease;
+      }
+
+      .card.shake { animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+      @keyframes shake {
+        10%, 90% { transform: translate3d(-2px, 0, 0); }
+        20%, 80% { transform: translate3d(4px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+        40%, 60% { transform: translate3d(6px, 0, 0); }
+      }
+
+      .form-group { margin-bottom: 22px; }
+      label { display: block; font-size: 0.85em; font-weight: 800; color: var(--text-sub); margin-bottom: 10px; letter-spacing: 1px; }
+
+      .select-wrapper { position: relative; }
+      .select-wrapper::after {
+        content: '▼'; font-size: 0.75em; color: var(--neon-green);
+        position: absolute; right: 18px; top: 50%; transform: translateY(-50%); pointer-events: none;
+      }
+
+      select {
+        width: 100%; height: 58px; padding: 0 42px 0 18px;
+        font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.05em; font-weight: 800;
+        color: var(--text-main); background-color: rgba(6, 9, 17, 0.85);
+        border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 18px;
+        outline: none; appearance: none; -webkit-appearance: none;
+      }
+
+      select:focus { border-color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green-glow); }
+
+      .btn-group { display: flex; flex-direction: column; gap: 14px; margin-top: 26px; }
+      .btn {
+        width: 100%; height: 62px; border: none; border-radius: 18px;
+        font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.15em; font-weight: 900;
+        letter-spacing: 1.5px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s ease;
+      }
+
+      .btn-in { background: linear-gradient(135deg, #00ff88, #00b359); color: #03140a; box-shadow: 0 10px 25px var(--neon-green-glow); }
+      .btn-in:active:not(:disabled) { transform: scale(0.96); }
+      .btn-out { background: rgba(255, 42, 109, 0.06); color: var(--neon-pink); border: 2px solid var(--neon-pink); box-shadow: 0 6px 20px rgba(255, 42, 109, 0.2); }
+      .btn-out:active:not(:disabled) { background: rgba(255, 42, 109, 0.25); transform: scale(0.96); }
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.7); }
+
+      #result {
+        margin-top: 20px; padding: 18px 20px; border-radius: 20px; display: none; font-size: 0.95em; line-height: 1.6;
+        animation: resultPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+      @keyframes resultPop {
+        from { opacity: 0; transform: scale(0.88) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+      }
+
+      .result-success { background: rgba(0, 255, 136, 0.1); border: 1.5px solid var(--neon-green); box-shadow: 0 0 20px var(--neon-green-glow); color: #f0fff4; }
+      .result-error { background: rgba(255, 42, 109, 0.12); border: 1.5px solid var(--neon-pink); box-shadow: 0 0 20px var(--neon-pink-glow); color: #fff0f3; }
+      .result-title { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.05em; }
+      .info-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+      .info-val { font-family: 'JetBrains Mono', monospace; font-size: 1.3em; font-weight: 700; color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green-glow); }
+    </style>
+  </head>
+  <body>
+
+    <div class="app-container">
+      <div class="header">
+        <p class="title">✦ TENKO SYSTEM ✦</p>
+        <div class="clock" id="clock">00:00:00</div>
+      </div>
+
+      <div class="card" id="mainCard">
+        <form id="tenkoForm">
+          <div class="form-group">
+            <label for="staffName">STAFF SELECT</label>
+            <div class="select-wrapper">
+              <select id="staffName" required>
+                <option value="">読み込み中...</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" class="btn btn-in" onclick="submitTenko('出勤')">
+              <span>出勤打刻</span>
+            </button>
+            <button type="button" class="btn btn-out" onclick="submitTenko('退勤')">
+              <span>退勤打刻</span>
+            </button>
+          </div>
+        </form>
+
+        <div id="result"></div>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================
+      // GASのWebアプリURL（※ここに自分のURLを貼る）
+      // ==========================================
+      var GAS_API_URL = "https://docs.google.com/spreadsheets/d/1wzedCdsAYkRVHoPLzXTh8oNdq4IoOOuyWapDfAJat6Y/edit?gid=0#gid=0";
+
+      var audioCtx = null;
+      function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      function playTapSound() {
+        try {
+          initAudio();
+          var osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+          osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.04);
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(); osc.stop(audioCtx.currentTime + 0.04);
+        } catch(e) {}
+      }
+
+      function playSuccessSound() {
+        try {
+          initAudio();
+          var now = audioCtx.currentTime;
+          var osc1 = audioCtx.createOscillator(), gain1 = audioCtx.createGain();
+          osc1.type = 'triangle';
+          osc1.frequency.setValueAtTime(523.25, now);
+          osc1.frequency.setValueAtTime(659.25, now + 0.08);
+          osc1.frequency.setValueAtTime(1046.50, now + 0.16);
+          gain1.gain.setValueAtTime(0.2, now);
+          gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+          osc1.connect(gain1); gain1.connect(audioCtx.destination);
+          osc1.start(now); osc1.stop(now + 0.4);
+        } catch(e) {}
+      }
+
+      function playErrorSound() {
+        try {
+          initAudio();
+          var now = audioCtx.currentTime;
+          var osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.setValueAtTime(110, now + 0.12);
+          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(now); osc.stop(now + 0.28);
+        } catch(e) {}
+      }
+
+      function triggerHaptic(type) {
+        if (navigator.vibrate) {
+          if (type === 'error') navigator.vibrate([60, 50, 60]);
+          else navigator.vibrate(45);
+        }
+      }
+
+      function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('clock').innerText = `${h}:${m}:${s}`;
+      }
+      setInterval(updateClock, 1000); updateClock();
+
+      // プルダウンの取得 (fetch API)
+      window.onload = function() {
+        fetch(GAS_API_URL + "?action=getStaff")
+          .then(res => res.json())
+          .then(list => {
+            var select = document.getElementById('staffName');
+            select.innerHTML = '<option value="">名前を選択してください</option>';
+            list.forEach(function(name) {
+              var opt = document.createElement('option');
+              opt.value = name;
+              opt.textContent = name;
+              select.appendChild(opt);
+            });
+          })
+          .catch(err => {
+            showErrorAlert('スタッフリストの読み込みに失敗しました');
+          });
+      };
+
+      function submitTenko(status) {
+        playTapSound();
+        triggerHaptic('tap');
+
+        var staffName = document.getElementById('staffName').value;
+        if (!staffName) {
+          showErrorAlert('名前を選択してください');
+          return;
+        }
+
+        var btn = event.currentTarget;
+        btn.disabled = true;
+        var originalText = btn.innerHTML;
+        btn.innerHTML = '<span>位置確認中...</span>';
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function(pos) {
+              btn.innerHTML = '<span>送信中...</span>';
+              sendData(staffName, status, pos.coords.latitude, pos.coords.longitude, btn, originalText);
+            },
+            function(err) {
+              showErrorAlert('位置情報の取得を許可してください。エリア判定に必要です。');
+              btn.disabled = false;
+              btn.innerHTML = originalText;
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+          );
+        } else {
+          showErrorAlert('お使いの端末は位置情報に対応していません。');
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
+
+      function showErrorAlert(msg) {
+        playErrorSound();
+        triggerHaptic('error');
+        
+        var card = document.getElementById('mainCard');
+        card.classList.remove('shake');
+        void card.offsetWidth;
+        card.classList.add('shake');
+
+        var resDiv = document.getElementById('result');
+        resDiv.style.display = 'block';
+        resDiv.className = 'result-error';
+        resDiv.innerHTML = '<div class="result-title"><span>⚠️</span> <span>打刻エラー</span></div><div style="margin-top:4px;">' + msg + '</div>';
+      }
+
+      function sendData(staffName, status, lat, lng, btn, originalText) {
+        var data = {
+          staffName: staffName,
+          status: status,
+          lat: lat,
+          lng: lng
+        };
+
+        fetch(GAS_API_URL, {
+          method: 'POST',
+          body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          
+          var resDiv = document.getElementById('result');
+          resDiv.style.display = 'block';
+
+          if (res.success) {
+            playSuccessSound();
+            triggerHaptic('success');
+
+            resDiv.className = 'result-success';
+            var html = '<div class="result-title"><span>✨</span> <span>' + res.message + '</span></div>';
+            if (res.workHours) {
+              html += '<div class="info-row"><span>計算勤務時間</span><span class="info-val">' + res.workHours + ' h</span></div>';
+              html += '<div class="info-row"><span>概算支給金額</span><span class="info-val">¥' + res.pay + '</span></div>';
+            }
+            resDiv.innerHTML = html;
+          } else {
+            showErrorAlert(res.message);
+          }
+        })
+        .catch(err => {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+          showErrorAlert('通信エラーが発生しました');
+        });
+      }
+    </script>
+  </body>
+</html>
