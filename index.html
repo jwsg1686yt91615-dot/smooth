@@ -159,9 +159,9 @@
 
     <script>
       // ==========================================
-      // GASのWebアプリURL（※ここに自分のURLを貼る）
+      // GASのWebアプリURL（※ここにご自身のURLを設定）
       // ==========================================
-      var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwwGh6I_VlWHmSng8cRHzLYeuneMG0kwH04bkd3jvrKCTYUPG4ShQufATfOYFxEu9kv/exec";
+      var GAS_API_URL = "https://script.google.com/macros/s/AKfycb.../exec";
 
       var audioCtx = null;
       function initAudio() {
@@ -228,7 +228,7 @@
       }
       setInterval(updateClock, 1000); updateClock();
 
-      // プルダウンの取得 (fetch API)
+      // プルダウンの取得
       window.onload = function() {
         fetch(GAS_API_URL + "?action=getStaff")
           .then(res => res.json())
@@ -260,26 +260,9 @@
         var btn = event.currentTarget;
         btn.disabled = true;
         var originalText = btn.innerHTML;
-        btn.innerHTML = '<span>位置確認中...</span>';
+        btn.innerHTML = '<span>送信中...</span>';
 
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            function(pos) {
-              btn.innerHTML = '<span>送信中...</span>';
-              sendData(staffName, status, pos.coords.latitude, pos.coords.longitude, btn, originalText);
-            },
-            function(err) {
-              showErrorAlert('位置情報の取得を許可してください。エリア判定に必要です。');
-              btn.disabled = false;
-              btn.innerHTML = originalText;
-            },
-            { enableHighAccuracy: true, timeout: 10000 }
-          );
-        } else {
-          showErrorAlert('お使いの端末は位置情報に対応していません。');
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-        }
+        sendData(staffName, status, btn, originalText);
       }
 
       function showErrorAlert(msg) {
@@ -297,12 +280,10 @@
         resDiv.innerHTML = '<div class="result-title"><span>⚠️</span> <span>打刻エラー</span></div><div style="margin-top:4px;">' + msg + '</div>';
       }
 
-      function sendData(staffName, status, lat, lng, btn, originalText) {
+      function sendData(staffName, status, btn, originalText) {
         var data = {
           staffName: staffName,
-          status: status,
-          lat: lat,
-          lng: lng
+          status: status
         };
 
         fetch(GAS_API_URL, {
