@@ -159,7 +159,7 @@
 
     <script>
       // ==========================================
-      // GASのWebアプリURL（※ここにご自身のURLを設定）
+      // GASのWebアプリURL（※ご自身のURLを設定）
       // ==========================================
       var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwwGh6I_VlWHmSng8cRHzLYeuneMG0kwH04bkd3jvrKCTYUPG4ShQufATfOYFxEu9kv/exec";
 
@@ -228,22 +228,41 @@
       }
       setInterval(updateClock, 1000); updateClock();
 
-      // プルダウンの取得
+      // セレクトボックスにオプションを流し込む共通処理
+      function renderStaffList(list) {
+        var select = document.getElementById('staffName');
+        var currentVal = select.value;
+        select.innerHTML = '<option value="">名前を選択してください</option>';
+        list.forEach(function(name) {
+          var opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+        if (currentVal) select.value = currentVal;
+      }
+
+      // 高速化：キャッシュ＋バックグラウンド同期
       window.onload = function() {
-        fetch(GAS_API_URL + "?action=getStaff")
+        // 1. 保存されたキャッシュ（ローカルデータ）があれば一瞬で表示
+        var cached = localStorage.getItem('tenko_staff_cache');
+        if (cached) {
+          try {
+            var list = JSON.parse(cached);
+            renderStaffList(list);
+          } catch(e) {}
+        }
+
+        // 2. 裏側で最新データをGASから取得して更新
+        fetch(GAS_API_URL + "?action=getStaff", { method: 'GET', redirect: 'follow' })
           .then(res => res.json())
           .then(list => {
-            var select = document.getElementById('staffName');
-            select.innerHTML = '<option value="">名前を選択してください</option>';
-            list.forEach(function(name) {
-              var opt = document.createElement('option');
-              opt.value = name;
-              opt.textContent = name;
-              select.appendChild(opt);
-            });
+            renderStaffList(list);
+            // 最新リストを次回用に保存
+            localStorage.setItem('tenko_staff_cache', JSON.stringify(list));
           })
           .catch(err => {
-            showErrorAlert('スタッフリストの読み込みに失敗しました');
+            if (!cached) showErrorAlert('スタッフリストの読み込みに失敗しました');
           });
       };
 
