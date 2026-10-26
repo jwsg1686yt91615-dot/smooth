@@ -138,16 +138,16 @@
             <label for="staffName">STAFF SELECT</label>
             <div class="select-wrapper">
               <select id="staffName" required>
-                <option value="">読み込み中...</option>
+                <option value="">名前を選択してください</option>
               </select>
             </div>
           </div>
 
           <div class="btn-group">
-            <button type="button" class="btn btn-in" onclick="submitTenko('出勤')">
+            <button type="button" class="btn btn-in" id="btnIn" onclick="submitTenko('出勤')">
               <span>出勤打刻</span>
             </button>
-            <button type="button" class="btn btn-out" onclick="submitTenko('退勤')">
+            <button type="button" class="btn btn-out" id="btnOut" onclick="submitTenko('退勤')">
               <span>退勤打刻</span>
             </button>
           </div>
@@ -159,7 +159,67 @@
 
     <script>
       // ==========================================
-      // GASのWebアプリURL（※ご自身のURLを設定）
+      // 1. スタッフリストの直埋め（通信待ち時間ゼロ）
+      // ==========================================
+      var STAFF_LIST = [
+        "今井真仁",
+        "惣田湧也",
+        "根来宏満",
+        "横山彩人",
+        "稲葉優冴",
+        "上山里志",
+        "大箱竜太郎",
+        "清水慈英",
+        "倉田晴也",
+        "斉藤亮一",
+        "諸橋悠有",
+        "横山麗矢",
+        "森田翔喜",
+        "永井陸斗",
+        "吉田学生",
+        "尾山義征",
+        "山本晴斗",
+        "仲谷直路",
+        "宮本純平",
+        "仲谷直路",
+        "矢野平",
+        "波田野栄太",
+        "中森たかや",
+        "川島寿輝",
+        "橋本ゆうと",
+        "小早川大和",
+        "徳應天",
+        "寺下颯星",
+        "吉田來音",
+        "島野聖也",
+        "宮本純平",
+        "亀井勇樹",
+        "佐々木啓佑",
+        "山田孝",
+        "池田晴樹",
+        "根来汰地",
+        "宮本誠志",
+        "桜都",
+        "山口真怜",
+        "村田紫逢",
+        "木脇勇太郎",
+        "ゆうか",
+        "鎌埼諒",
+        "根来柚衣",
+        "川口恭平",
+        "瀬戸翔太",
+        "多田天真",
+        "山田和彦",
+        "横山聖矢",
+        "梅田慶次郎",
+        "花野瑠香",
+        "下田夏輝",
+        "中本尋都",
+        "酒井晴星"
+      ];
+
+      // ==========================================
+      // 2. GASのWebアプリURL（ご自身のURLを設定）
       // ==========================================
       var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwwGh6I_VlWHmSng8cRHzLYeuneMG0kwH04bkd3jvrKCTYUPG4ShQufATfOYFxEu9kv/exec";
 
@@ -228,42 +288,16 @@
       }
       setInterval(updateClock, 1000); updateClock();
 
-      // セレクトボックスにオプションを流し込む共通処理
-      function renderStaffList(list) {
+      // 0.0秒で直ちにプルダウン表示
+      window.onload = function() {
         var select = document.getElementById('staffName');
-        var currentVal = select.value;
         select.innerHTML = '<option value="">名前を選択してください</option>';
-        list.forEach(function(name) {
+        STAFF_LIST.forEach(function(name) {
           var opt = document.createElement('option');
           opt.value = name;
           opt.textContent = name;
           select.appendChild(opt);
         });
-        if (currentVal) select.value = currentVal;
-      }
-
-      // 高速化：キャッシュ＋バックグラウンド同期
-      window.onload = function() {
-        // 1. 保存されたキャッシュ（ローカルデータ）があれば一瞬で表示
-        var cached = localStorage.getItem('tenko_staff_cache');
-        if (cached) {
-          try {
-            var list = JSON.parse(cached);
-            renderStaffList(list);
-          } catch(e) {}
-        }
-
-        // 2. 裏側で最新データをGASから取得して更新
-        fetch(GAS_API_URL + "?action=getStaff", { method: 'GET', redirect: 'follow' })
-          .then(res => res.json())
-          .then(list => {
-            renderStaffList(list);
-            // 最新リストを次回用に保存
-            localStorage.setItem('tenko_staff_cache', JSON.stringify(list));
-          })
-          .catch(err => {
-            if (!cached) showErrorAlert('スタッフリストの読み込みに失敗しました');
-          });
       };
 
       function submitTenko(status) {
@@ -276,12 +310,22 @@
           return;
         }
 
-        var btn = event.currentTarget;
-        btn.disabled = true;
-        var originalText = btn.innerHTML;
-        btn.innerHTML = '<span>送信中...</span>';
+        var btnIn = document.getElementById('btnIn');
+        var btnOut = document.getElementById('btnOut');
+        btnIn.disabled = true;
+        btnOut.disabled = true;
 
-        sendData(staffName, status, btn, originalText);
+        // 【即時UIフィードバック】返答を待たずに成功表示＆サウンド再生
+        playSuccessSound();
+        triggerHaptic('success');
+        
+        var resDiv = document.getElementById('result');
+        resDiv.style.display = 'block';
+        resDiv.className = 'result-success';
+        resDiv.innerHTML = '<div class="result-title"><span>✨</span> <span>' + status + '点呼を受け付けました</span></div>';
+
+        // バックグラウンドで非同期送信
+        sendData(staffName, status, btnIn, btnOut);
       }
 
       function showErrorAlert(msg) {
@@ -299,7 +343,7 @@
         resDiv.innerHTML = '<div class="result-title"><span>⚠️</span> <span>打刻エラー</span></div><div style="margin-top:4px;">' + msg + '</div>';
       }
 
-      function sendData(staffName, status, btn, originalText) {
+      function sendData(staffName, status, btnIn, btnOut) {
         var data = {
           staffName: staffName,
           status: status
@@ -311,17 +355,12 @@
         })
         .then(res => res.json())
         .then(res => {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
+          btnIn.disabled = false;
+          btnOut.disabled = false;
           
           var resDiv = document.getElementById('result');
-          resDiv.style.display = 'block';
 
           if (res.success) {
-            playSuccessSound();
-            triggerHaptic('success');
-
-            resDiv.className = 'result-success';
             var html = '<div class="result-title"><span>✨</span> <span>' + res.message + '</span></div>';
             if (res.workHours) {
               html += '<div class="info-row"><span>計算勤務時間</span><span class="info-val">' + res.workHours + ' h</span></div>';
@@ -333,8 +372,8 @@
           }
         })
         .catch(err => {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
+          btnIn.disabled = false;
+          btnOut.disabled = false;
           showErrorAlert('通信エラーが発生しました');
         });
       }
