@@ -137,7 +137,7 @@
           <div class="form-group">
             <label for="staffName">STAFF SELECT</label>
             <div class="select-wrapper">
-              <select id="staffName" required>
+              <select id="staffName" onchange="checkWorkingStatus()" required>
                 <option value="">名前を選択してください</option>
               </select>
             </div>
@@ -158,71 +158,42 @@
     </div>
 
     <script>
-      // ==========================================
-      // 1. スタッフリストの直埋め（通信待ち時間ゼロ）
-      // ==========================================
       var STAFF_LIST = [
         "今井真仁",
-        "惣田湧也",
-        "根来宏満",
-        "横山彩人",
         "稲葉優冴",
-        "上山里志",
         "大箱竜太郎",
-        "清水慈英",
-        "倉田晴也",
-        "斉藤亮一",
-        "諸橋悠有",
-        "横山麗矢",
-        "森田翔喜",
-        "永井陸斗",
-        "吉田学生",
-        "尾山義征",
-        "山本晴斗",
-        "仲谷直路",
-        "宮本純平",
-        "仲谷直路",
-        "矢野平",
-        "波田野栄太",
-        "中森たかや",
-        "川島寿輝",
-        "橋本ゆうと",
-        "小早川大和",
-        "徳應天",
-        "寺下颯星",
-        "吉田來音",
-        "島野聖也",
-        "宮本純平",
-        "亀井勇樹",
-        "佐々木啓佑",
-        "山田孝",
-        "池田晴樹",
-        "根来汰地",
-        "宮本誠志",
-        "おと",
-        "山口真怜",
-        "村田紫逢",
-        "木脇勇太郎",
-        "ゆうか",
-        "鎌埼諒",
-        "ゆい",
         "川口恭平",
-        "瀬戸翔太",
-        "多田天真",
-        "山田和彦",
-        "横山聖矢",
-        "梅田慶次郎",
-        "るか",
-        "下田夏輝",
-        "中本尋都",
+        "倉田晴也",
+        "小早川大和",
         "酒井晴星",
+        "下田夏輝",
+        "島野聖也",
+        "清水慈英",
         "椙山祐太",
-        "参河豪太"
+        "塚尾優花",
+        "徳應天",
+        "中本尋都",
+        "仲谷直路",
+        "根来宏満",
+        "根来桜都",
+        "根来汰地",
+        "花野瑠香",
+        "参河豪太",
+        "宮本純平",
+        "村田紫逢",
+        "森田翔喜",
+        "矢野平",
+        "山口真怜",
+        "横山彩人",
+        "横山聖矢",
+        "横山麗矢",
+        "吉田來音",
+        "吉田学生",
+        "池田晴樹",
+        "木脇勇太郎",
+        "山本晴斗"
       ];
 
-      // ==========================================
-      // 2. GASのWebアプリURL（ご自身のURLを設定）
-      // ==========================================
       var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwwGh6I_VlWHmSng8cRHzLYeuneMG0kwH04bkd3jvrKCTYUPG4ShQufATfOYFxEu9kv/exec";
 
       var audioCtx = null;
@@ -290,7 +261,6 @@
       }
       setInterval(updateClock, 1000); updateClock();
 
-      // 0.0秒で直ちにプルダウン表示
       window.onload = function() {
         var select = document.getElementById('staffName');
         select.innerHTML = '<option value="">名前を選択してください</option>';
@@ -301,6 +271,38 @@
           select.appendChild(opt);
         });
       };
+
+      // 出勤ステータスに応じて「出勤ボタンのみ」または「退勤ボタンのみ」に制御する関数
+      function checkWorkingStatus() {
+        var staffName = document.getElementById('staffName').value;
+        var btnIn = document.getElementById('btnIn');
+        var btnOut = document.getElementById('btnOut');
+
+        if (!staffName) {
+          btnIn.style.display = 'flex';
+          btnOut.style.display = 'flex';
+          return;
+        }
+
+        fetch(GAS_API_URL + "?action=checkStatus&staffName=" + encodeURIComponent(staffName))
+          .then(res => res.json())
+          .then(res => {
+            if (res.isWorking) {
+              // 【出勤中の場合】➔ 退勤ボタンのみ表示
+              btnIn.style.display = 'none';
+              btnOut.style.display = 'flex';
+            } else {
+              // 【未出勤（退勤済み）の場合】➔ 出勤ボタンのみ表示
+              btnIn.style.display = 'flex';
+              btnOut.style.display = 'none';
+            }
+          })
+          .catch(err => {
+            // 通信エラー時は安全のため両方表示
+            btnIn.style.display = 'flex';
+            btnOut.style.display = 'flex';
+          });
+      }
 
       function submitTenko(status) {
         playTapSound();
@@ -317,7 +319,6 @@
         btnIn.disabled = true;
         btnOut.disabled = true;
 
-        // 【即時UIフィードバック】返答を待たずに成功表示＆サウンド再生
         playSuccessSound();
         triggerHaptic('success');
         
@@ -326,7 +327,6 @@
         resDiv.className = 'result-success';
         resDiv.innerHTML = '<div class="result-title"><span>✨</span> <span>' + status + '点呼を受け付けました</span></div>';
 
-        // バックグラウンドで非同期送信
         sendData(staffName, status, btnIn, btnOut);
       }
 
@@ -369,6 +369,9 @@
               html += '<div class="info-row"><span>概算支給金額</span><span class="info-val">¥' + res.pay + '</span></div>';
             }
             resDiv.innerHTML = html;
+
+            // 打刻完了後にボタンの表示状態を自動切り替え（出勤完了なら退勤ボタンへ / 退勤完了なら出勤ボタンへ）
+            checkWorkingStatus();
           } else {
             showErrorAlert(res.message);
           }
