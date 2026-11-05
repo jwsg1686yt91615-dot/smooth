@@ -111,7 +111,6 @@
 
       .btn-group { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
       
-      /* ぷにぷにボタン基本構造 */
       .btn {
         width: 100%; height: 66px; border: none; border-radius: 28px;
         font-family: 'Kiwi Maru', sans-serif; font-size: 1.25em; font-weight: 800;
@@ -120,7 +119,6 @@
         position: relative; top: 0;
       }
 
-      /* ぷにぷに出勤ボタン（パステルグリーン） */
       .btn-in {
         display: none; background: #60ebd1; color: #ffffff;
         text-shadow: 1px 2px 0px var(--mint-shadow);
@@ -131,7 +129,6 @@
         top: 6px; box-shadow: 0 2px 0px var(--mint-shadow), 0 5px 10px rgba(59, 196, 163, 0.3);
       }
 
-      /* ぷにぷに退勤ボタン（マカロンピンク） */
       .btn-out {
         display: none; background: #ff75b3; color: #ffffff;
         text-shadow: 1px 2px 0px var(--pink-shadow);
@@ -158,9 +155,68 @@
       .result-title { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; font-size: 1.1em; }
       .info-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 2px dashed rgba(163, 123, 147, 0.2); }
       .info-val { font-family: 'Fredoka', sans-serif; font-size: 1.3em; font-weight: 700; color: #ff529a; }
+
+      /* ==========================================
+         かわいいローディングオーバーレイ
+         ========================================== */
+      .loading-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255, 238, 248, 0.88);
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        z-index: 9999; opacity: 0; pointer-events: none;
+        transition: opacity 0.25s ease;
+      }
+
+      .loading-overlay.active { opacity: 1; pointer-events: auto; }
+
+      .loading-box {
+        text-align: center; background: #ffffff;
+        padding: 24px 32px; border-radius: 32px;
+        border: 4px solid #ffd1e8;
+        box-shadow: 0 15px 30px rgba(255, 128, 191, 0.3);
+        animation: loadingBounce 0.8s ease-in-out infinite alternate;
+      }
+
+      @keyframes loadingBounce {
+        from { transform: translateY(0px) scale(0.98); }
+        to { transform: translateY(-10px) scale(1.02); }
+      }
+
+      .loading-icon { font-size: 2.8em; margin-bottom: 8px; display: inline-block; animation: spinIcon 2s linear infinite; }
+      @keyframes spinIcon {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .loading-text { font-size: 1.1em; font-weight: 800; color: #ff529a; margin-bottom: 12px; }
+
+      .loading-dots { display: flex; justify-content: center; gap: 8px; }
+      .loading-dots span {
+        width: 12px; height: 12px; background-color: #ff80bf; border-radius: 50%;
+        animation: dotBounce 0.6s infinite alternate;
+      }
+      .loading-dots span:nth-child(2) { animation-delay: 0.2s; background-color: #70e4c8; }
+      .loading-dots span:nth-child(3) { animation-delay: 0.4s; background-color: #ffb3d6; }
+
+      @keyframes dotBounce {
+        from { transform: translateY(0); }
+        to { transform: translateY(-10px); }
+      }
     </style>
   </head>
   <body>
+
+    <!-- ローディング画面 -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-box">
+        <div class="loading-icon">🪄</div>
+        <div class="loading-text" id="loadingText">うらない中...</div>
+        <div class="loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
 
     <div class="app-container">
       <div class="header">
@@ -194,7 +250,6 @@
     </div>
 
     <script>
-      // あいうえお順スタッフリスト
       var STAFF_LIST = [
         "池田晴樹",
         "今井真仁",
@@ -242,47 +297,54 @@
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
 
+      // ぽよん♪（タップ音）
       function playTapSound() {
         try {
           initAudio();
+          var now = audioCtx.currentTime;
           var osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-          osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.04);
-          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
           osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(); osc.stop(audioCtx.currentTime + 0.04);
+          osc.start(now); osc.stop(now + 0.08);
         } catch(e) {}
       }
 
+      // キラリ〜ン✨（成功音）
       function playSuccessSound() {
         try {
           initAudio();
           var now = audioCtx.currentTime;
-          var osc1 = audioCtx.createOscillator(), gain1 = audioCtx.createGain();
-          osc1.type = 'triangle';
-          osc1.frequency.setValueAtTime(523.25, now);
-          osc1.frequency.setValueAtTime(659.25, now + 0.08);
-          osc1.frequency.setValueAtTime(1046.50, now + 0.16);
-          gain1.gain.setValueAtTime(0.2, now);
-          gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-          osc1.connect(gain1); gain1.connect(audioCtx.destination);
-          osc1.start(now); osc1.stop(now + 0.4);
+          var notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C E G C E
+          notes.forEach((freq, idx) => {
+            var osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+            gain.gain.setValueAtTime(0.18, now + idx * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now + idx * 0.06);
+            osc.stop(now + idx * 0.06 + 0.25);
+          });
         } catch(e) {}
       }
 
+      // ぷえ〜ん💧（エラー音）
       function playErrorSound() {
         try {
           initAudio();
           var now = audioCtx.currentTime;
           var osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(150, now);
-          osc.frequency.setValueAtTime(110, now + 0.12);
-          gain.gain.setValueAtTime(0.25, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.linearRampToValueAtTime(180, now + 0.35);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
           osc.connect(gain); gain.connect(audioCtx.destination);
-          osc.start(now); osc.stop(now + 0.28);
+          osc.start(now); osc.stop(now + 0.35);
         } catch(e) {}
       }
 
@@ -301,6 +363,15 @@
         document.getElementById('clock').innerText = `${h}:${m}:${s}`;
       }
       setInterval(updateClock, 1000); updateClock();
+
+      function showLoading(text) {
+        document.getElementById('loadingText').innerText = text || 'うらない中...';
+        document.getElementById('loadingOverlay').classList.add('active');
+      }
+
+      function hideLoading() {
+        document.getElementById('loadingOverlay').classList.remove('active');
+      }
 
       window.onload = function() {
         var select = document.getElementById('staffName');
@@ -324,9 +395,13 @@
           return;
         }
 
+        // 名前を選んだ瞬間にローディング表示
+        showLoading('確認中だよ... 🎀');
+
         fetch(GAS_API_URL + "?action=checkStatus&staffName=" + encodeURIComponent(staffName))
           .then(res => res.json())
           .then(res => {
+            hideLoading();
             if (res.isWorking) {
               btnIn.style.display = 'none';
               btnOut.style.display = 'flex';
@@ -336,6 +411,7 @@
             }
           })
           .catch(err => {
+            hideLoading();
             btnIn.style.display = 'flex';
             btnOut.style.display = 'flex';
           });
@@ -356,18 +432,13 @@
         btnIn.disabled = true;
         btnOut.disabled = true;
 
-        playSuccessSound();
-        triggerHaptic('success');
-        
-        var resDiv = document.getElementById('result');
-        resDiv.style.display = 'block';
-        resDiv.className = 'result-success';
-        resDiv.innerHTML = '<div class="result-title"><span>🎀</span> <span>' + status + '点呼を受け付けたよ！</span></div>';
+        showLoading(status + '処理中だよ... ✨');
 
         sendData(staffName, status, btnIn, btnOut);
       }
 
       function showErrorAlert(msg) {
+        hideLoading();
         playErrorSound();
         triggerHaptic('error');
         
@@ -394,12 +465,19 @@
         })
         .then(res => res.json())
         .then(res => {
+          hideLoading();
           btnIn.disabled = false;
           btnOut.disabled = false;
           
           var resDiv = document.getElementById('result');
 
           if (res.success) {
+            playSuccessSound();
+            triggerHaptic('success');
+
+            resDiv.style.display = 'block';
+            resDiv.className = 'result-success';
+
             var html = '<div class="result-title"><span>✨</span> <span>' + res.message + '</span></div>';
             if (res.workHours) {
               html += '<div class="info-row"><span>がんばった時間</span><span class="info-val">' + res.workHours + ' h</span></div>';
@@ -413,6 +491,7 @@
           }
         })
         .catch(err => {
+          hideLoading();
           btnIn.disabled = false;
           btnOut.disabled = false;
           showErrorAlert('通信エラーが発生しちゃった');
