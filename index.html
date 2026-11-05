@@ -3,31 +3,31 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>点呼・打刻システム</title>
+    <title>点呼・打刻システム 🎀</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=M+PLUS+Rounded+1c:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Kiwi+Maru:wght@500;700;800&display=swap" rel="stylesheet">
 
     <style>
       :root {
-        --bg-color: #060911;
-        --card-bg: rgba(15, 23, 42, 0.88);
-        --neon-green: #00ff88;
-        --neon-green-glow: rgba(0, 255, 136, 0.45);
-        --neon-pink: #ff2a6d;
-        --neon-pink-glow: rgba(255, 42, 109, 0.45);
-        --text-main: #f8fafc;
-        --text-sub: #94a3b8;
+        --bg-pink: #ffe6f2;
+        --card-bg: rgba(255, 255, 255, 0.92);
+        --text-main: #6b4b5e;
+        --text-sub: #a37b93;
+        --accent-pink: #ff80bf;
+        --pink-shadow: #e65c9c;
+        --mint-green: #70e4c8;
+        --mint-shadow: #3bc4a3;
+        --neon-pink: #ff4d94;
       }
 
       * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
       body {
-        font-family: 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, sans-serif;
-        background-color: var(--bg-color);
-        background-image: 
-          radial-gradient(circle at 50% -10%, rgba(0, 255, 136, 0.15), transparent 60%),
-          radial-gradient(circle at 50% 110%, rgba(255, 42, 109, 0.12), transparent 60%);
+        font-family: 'Kiwi Maru', -apple-system, sans-serif;
+        background: linear-gradient(135deg, #ffeef8 0%, #e8f4ff 50%, #fff0f5 100%);
+        background-size: 200% 200%;
+        animation: gradientBg 12s ease infinite;
         color: var(--text-main);
         margin: 0; padding: 16px;
         min-height: 100vh;
@@ -36,120 +36,155 @@
         overflow-x: hidden;
       }
 
+      @keyframes gradientBg {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+
       .app-container {
         width: 100%; max-width: 390px;
-        animation: containerSlide 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: floatCard 4s ease-in-out infinite alternate;
       }
 
-      @keyframes containerSlide {
-        from { opacity: 0; transform: translateY(20px) scale(0.96); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+      @keyframes floatCard {
+        0% { transform: translateY(0px); }
+        100% { transform: translateY(-8px); }
       }
 
-      .header { text-align: center; margin-bottom: 22px; }
+      .header { text-align: center; margin-bottom: 20px; }
       .title {
-        font-size: 0.9em; font-weight: 800; letter-spacing: 3px;
-        color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green-glow);
-        text-transform: uppercase; margin: 0 0 4px 0;
+        font-size: 1.1em; font-weight: 800; letter-spacing: 2px;
+        color: #ff66a3; text-shadow: 2px 2px 0px #fff;
+        margin: 0 0 6px 0; display: flex; align-items: center; justify-content: center; gap: 6px;
       }
       .clock {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 2.4em; font-weight: 700; color: var(--text-main);
-        letter-spacing: 2px; text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        font-family: 'Fredoka', sans-serif;
+        font-size: 2.6em; font-weight: 700; color: #ff529a;
+        letter-spacing: 2px;
+        text-shadow: 3px 3px 0px #ffffff, 5px 5px 10px rgba(255, 133, 184, 0.3);
       }
 
       .card {
         background: var(--card-bg);
-        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 28px; padding: 26px 22px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        transition: transform 0.3s ease;
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        border: 4px solid #ffffff;
+        border-radius: 36px; padding: 28px 24px;
+        box-shadow: 0 18px 35px rgba(230, 150, 190, 0.25), inset 0 0 15px rgba(255, 255, 255, 0.8);
+        position: relative;
       }
 
-      .card.shake { animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
-      @keyframes shake {
-        10%, 90% { transform: translate3d(-2px, 0, 0); }
-        20%, 80% { transform: translate3d(4px, 0, 0); }
-        30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-        40%, 60% { transform: translate3d(6px, 0, 0); }
+      .card::before {
+        content: '🧸'; position: absolute; top: -18px; right: 20px;
+        font-size: 1.8em; transform: rotate(12deg);
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+      }
+
+      .card.shake { animation: squishError 0.5s ease-in-out; }
+      @keyframes squishError {
+        0%, 100% { transform: scale(1, 1); }
+        25% { transform: scale(1.15, 0.85); }
+        50% { transform: scale(0.85, 1.15); }
+        75% { transform: scale(1.05, 0.95); }
       }
 
       .form-group { margin-bottom: 22px; }
-      label { display: block; font-size: 0.85em; font-weight: 800; color: var(--text-sub); margin-bottom: 10px; letter-spacing: 1px; }
+      label { display: block; font-size: 0.9em; font-weight: 800; color: var(--text-sub); margin-bottom: 10px; letter-spacing: 1px; text-align: center; }
 
       .select-wrapper { position: relative; }
       .select-wrapper::after {
-        content: '▼'; font-size: 0.75em; color: var(--neon-green);
+        content: '🎀'; font-size: 1.1em;
         position: absolute; right: 18px; top: 50%; transform: translateY(-50%); pointer-events: none;
       }
 
       select {
-        width: 100%; height: 58px; padding: 0 42px 0 18px;
-        font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.05em; font-weight: 800;
-        color: var(--text-main); background-color: rgba(6, 9, 17, 0.85);
-        border: 1.5px solid rgba(255, 255, 255, 0.12); border-radius: 18px;
+        width: 100%; height: 60px; padding: 0 45px 0 20px;
+        font-family: 'Kiwi Maru', sans-serif; font-size: 1.1em; font-weight: 800;
+        color: var(--text-main); background-color: #fffafc;
+        border: 3px solid #ffd1e8; border-radius: 24px;
         outline: none; appearance: none; -webkit-appearance: none;
-      }
-
-      select:focus { border-color: var(--neon-green); box-shadow: 0 0 15px var(--neon-green-glow); }
-
-      .btn-group { display: flex; flex-direction: column; gap: 14px; margin-top: 26px; }
-      .btn {
-        width: 100%; height: 62px; border: none; border-radius: 18px;
-        font-family: 'M PLUS Rounded 1c', sans-serif; font-size: 1.15em; font-weight: 900;
-        letter-spacing: 1.5px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        box-shadow: inset 0 4px 8px rgba(255, 182, 217, 0.15);
         transition: all 0.2s ease;
       }
 
-      /* 初期表示は両方のボタンを非表示 */
-      .btn-in { display: none; background: linear-gradient(135deg, #00ff88, #00b359); color: #03140a; box-shadow: 0 10px 25px var(--neon-green-glow); }
-      .btn-in:active:not(:disabled) { transform: scale(0.96); }
-      .btn-out { display: none; background: rgba(255, 42, 109, 0.06); color: var(--neon-pink); border: 2px solid var(--neon-pink); box-shadow: 0 6px 20px rgba(255, 42, 109, 0.2); }
-      .btn-out:active:not(:disabled) { background: rgba(255, 42, 109, 0.25); transform: scale(0.96); }
-      .btn:disabled { opacity: 0.45; cursor: not-allowed; filter: grayscale(0.7); }
+      select:focus { border-color: #ff80bf; box-shadow: 0 0 12px rgba(255, 128, 191, 0.4); }
+
+      .btn-group { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+      
+      /* ぷにぷにボタン基本構造 */
+      .btn {
+        width: 100%; height: 66px; border: none; border-radius: 28px;
+        font-family: 'Kiwi Maru', sans-serif; font-size: 1.25em; font-weight: 800;
+        letter-spacing: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative; top: 0;
+      }
+
+      /* ぷにぷに出勤ボタン（パステルグリーン） */
+      .btn-in {
+        display: none; background: #60ebd1; color: #ffffff;
+        text-shadow: 1px 2px 0px var(--mint-shadow);
+        box-shadow: 0 8px 0px var(--mint-shadow), 0 15px 20px rgba(59, 196, 163, 0.35);
+        border: 3px solid #ffffff;
+      }
+      .btn-in:active:not(:disabled) {
+        top: 6px; box-shadow: 0 2px 0px var(--mint-shadow), 0 5px 10px rgba(59, 196, 163, 0.3);
+      }
+
+      /* ぷにぷに退勤ボタン（マカロンピンク） */
+      .btn-out {
+        display: none; background: #ff75b3; color: #ffffff;
+        text-shadow: 1px 2px 0px var(--pink-shadow);
+        box-shadow: 0 8px 0px var(--pink-shadow), 0 15px 20px rgba(230, 92, 156, 0.35);
+        border: 3px solid #ffffff;
+      }
+      .btn-out:active:not(:disabled) {
+        top: 6px; box-shadow: 0 2px 0px var(--pink-shadow), 0 5px 10px rgba(230, 92, 156, 0.3);
+      }
+
+      .btn:disabled { opacity: 0.5; filter: grayscale(0.5); cursor: not-allowed; }
 
       #result {
-        margin-top: 20px; padding: 18px 20px; border-radius: 20px; display: none; font-size: 0.95em; line-height: 1.6;
-        animation: resultPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        margin-top: 22px; padding: 18px 20px; border-radius: 24px; display: none; font-size: 0.95em; line-height: 1.6;
+        animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
       }
-      @keyframes resultPop {
-        from { opacity: 0; transform: scale(0.88) translateY(10px); }
+      @keyframes popUp {
+        from { opacity: 0; transform: scale(0.8) translateY(10px); }
         to { opacity: 1; transform: scale(1) translateY(0); }
       }
 
-      .result-success { background: rgba(0, 255, 136, 0.1); border: 1.5px solid var(--neon-green); box-shadow: 0 0 20px var(--neon-green-glow); color: #f0fff4; }
-      .result-error { background: rgba(255, 42, 109, 0.12); border: 1.5px solid var(--neon-pink); box-shadow: 0 0 20px var(--neon-pink-glow); color: #fff0f3; }
-      .result-title { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.05em; }
-      .info-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
-      .info-val { font-family: 'JetBrains Mono', monospace; font-size: 1.3em; font-weight: 700; color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green-glow); }
+      .result-success { background: #f0fff9; border: 3px solid #a3f3df; box-shadow: 0 8px 20px rgba(112, 228, 200, 0.25); color: #226b58; }
+      .result-error { background: #fff0f5; border: 3px solid #ffb3d6; box-shadow: 0 8px 20px rgba(255, 128, 191, 0.25); color: #8a305b; }
+      .result-title { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 800; font-size: 1.1em; }
+      .info-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 2px dashed rgba(163, 123, 147, 0.2); }
+      .info-val { font-family: 'Fredoka', sans-serif; font-size: 1.3em; font-weight: 700; color: #ff529a; }
     </style>
   </head>
   <body>
 
     <div class="app-container">
       <div class="header">
-        <p class="title">✦ TENKO SYSTEM ✦</p>
+        <p class="title">✨ 魔法のてんこアプリ 🌸</p>
         <div class="clock" id="clock">00:00:00</div>
       </div>
 
       <div class="card" id="mainCard">
         <form id="tenkoForm">
           <div class="form-group">
-            <label for="staffName">STAFF SELECT</label>
+            <label for="staffName">♡ メンバーをえらんでね ♡</label>
             <div class="select-wrapper">
               <select id="staffName" onchange="checkWorkingStatus()" required>
-                <option value="">名前を選択してください</option>
+                <option value="">お名前を選択してください</option>
               </select>
             </div>
           </div>
 
           <div class="btn-group">
             <button type="button" class="btn btn-in" id="btnIn" onclick="submitTenko('出勤')">
-              <span>出勤打刻</span>
+              <span>💖 しゅっきんする！</span>
             </button>
             <button type="button" class="btn btn-out" id="btnOut" onclick="submitTenko('退勤')">
-              <span>退勤打刻</span>
+              <span>🌙 たいきんする！</span>
             </button>
           </div>
         </form>
@@ -159,7 +194,7 @@
     </div>
 
     <script>
-      // あいうえお順（重複除去済み）スタッフリスト
+      // あいうえお順スタッフリスト
       var STAFF_LIST = [
         "池田晴樹",
         "今井真仁",
@@ -194,8 +229,12 @@
         "横山麗矢",
         "吉田來音",
         "吉田学生"
+
       ];
 
+      // ==========================================
+      // GASのWebアプリURL（※ご自身のURLを設定）
+      // ==========================================
       var GAS_API_URL = "https://script.google.com/macros/s/AKfycbwwGh6I_VlWHmSng8cRHzLYeuneMG0kwH04bkd3jvrKCTYUPG4ShQufATfOYFxEu9kv/exec";
 
       var audioCtx = null;
@@ -265,7 +304,7 @@
 
       window.onload = function() {
         var select = document.getElementById('staffName');
-        select.innerHTML = '<option value="">名前を選択してください</option>';
+        select.innerHTML = '<option value="">お名前を選択してください</option>';
         STAFF_LIST.forEach(function(name) {
           var opt = document.createElement('option');
           opt.value = name;
@@ -274,13 +313,11 @@
         });
       };
 
-      // 名前選択時に出勤ステータスを確認してボタン制御
       function checkWorkingStatus() {
         var staffName = document.getElementById('staffName').value;
         var btnIn = document.getElementById('btnIn');
         var btnOut = document.getElementById('btnOut');
 
-        // 名前未選択時は両方非表示
         if (!staffName) {
           btnIn.style.display = 'none';
           btnOut.style.display = 'none';
@@ -291,17 +328,14 @@
           .then(res => res.json())
           .then(res => {
             if (res.isWorking) {
-              // 出勤中 ➔ 退勤ボタンのみ表示
               btnIn.style.display = 'none';
               btnOut.style.display = 'flex';
             } else {
-              // 未出勤 ➔ 出勤ボタンのみ表示
               btnIn.style.display = 'flex';
               btnOut.style.display = 'none';
             }
           })
           .catch(err => {
-            // 通信エラー時は安全のため両方表示
             btnIn.style.display = 'flex';
             btnOut.style.display = 'flex';
           });
@@ -313,7 +347,7 @@
 
         var staffName = document.getElementById('staffName').value;
         if (!staffName) {
-          showErrorAlert('名前を選択してください');
+          showErrorAlert('お名前を選択してください');
           return;
         }
 
@@ -328,7 +362,7 @@
         var resDiv = document.getElementById('result');
         resDiv.style.display = 'block';
         resDiv.className = 'result-success';
-        resDiv.innerHTML = '<div class="result-title"><span>✨</span> <span>' + status + '点呼を受け付けました</span></div>';
+        resDiv.innerHTML = '<div class="result-title"><span>🎀</span> <span>' + status + '点呼を受け付けたよ！</span></div>';
 
         sendData(staffName, status, btnIn, btnOut);
       }
@@ -345,7 +379,7 @@
         var resDiv = document.getElementById('result');
         resDiv.style.display = 'block';
         resDiv.className = 'result-error';
-        resDiv.innerHTML = '<div class="result-title"><span>⚠️</span> <span>打刻エラー</span></div><div style="margin-top:4px;">' + msg + '</div>';
+        resDiv.innerHTML = '<div class="result-title"><span>😢</span> <span>あれれ？エラーだよ</span></div><div style="margin-top:4px; text-align:center;">' + msg + '</div>';
       }
 
       function sendData(staffName, status, btnIn, btnOut) {
@@ -368,12 +402,11 @@
           if (res.success) {
             var html = '<div class="result-title"><span>✨</span> <span>' + res.message + '</span></div>';
             if (res.workHours) {
-              html += '<div class="info-row"><span>計算勤務時間</span><span class="info-val">' + res.workHours + ' h</span></div>';
-              html += '<div class="info-row"><span>概算支給金額</span><span class="info-val">¥' + res.pay + '</span></div>';
+              html += '<div class="info-row"><span>がんばった時間</span><span class="info-val">' + res.workHours + ' h</span></div>';
+              html += '<div class="info-row"><span>きょうのごほうび</span><span class="info-val">¥' + res.pay + '</span></div>';
             }
             resDiv.innerHTML = html;
 
-            // 打刻完了後にボタン表示を再判定
             checkWorkingStatus();
           } else {
             showErrorAlert(res.message);
@@ -382,7 +415,7 @@
         .catch(err => {
           btnIn.disabled = false;
           btnOut.disabled = false;
-          showErrorAlert('通信エラーが発生しました');
+          showErrorAlert('通信エラーが発生しちゃった');
         });
       }
     </script>
